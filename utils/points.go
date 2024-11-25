@@ -12,7 +12,11 @@ func CalculatePoints(receipt models.Receipt) int {
 	points := 0
 
 	// One point for every alphanumeric character in the retailer name
-	points += len(strings.ReplaceAll(strings.ReplaceAll(receipt.Retailer, " ", ""), "-", ""))
+	for _, char := range receipt.Retailer {
+		if (char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z') || (char >= '0' && char <= '9') {
+			points++
+		}
+	}
 
 	// 50 points if the total is a round dollar amount with no cents
 	total, _ := strconv.ParseFloat(receipt.Total, 64)
@@ -21,7 +25,7 @@ func CalculatePoints(receipt models.Receipt) int {
 	}
 
 	// 25 points if the total is a multiple of 0.25
-	if math.Mod(total, 0.25) == 0 {
+	if int(total*100)%25 == 0 { // Convert to cents for accurate division
 		points += 25
 	}
 
@@ -46,7 +50,7 @@ func CalculatePoints(receipt models.Receipt) int {
 
 	// 10 points if the time of purchase is after 2:00pm and before 4:00pm
 	purchaseTime, _ := time.Parse("15:04", receipt.PurchaseTime)
-	if purchaseTime.Hour() == 14 {
+	if purchaseTime.Hour() >= 14 && purchaseTime.Hour() < 16 {
 		points += 10
 	}
 
